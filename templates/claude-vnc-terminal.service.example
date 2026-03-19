@@ -12,10 +12,12 @@ Environment="ADMIN_PASSWORD=<replace-at-deploy-time>"
 Environment="TRUST_PROXY_IPS=<replace-with-instance-proxy-ip-or-list>"
 Environment="AUTH_BAN_ENABLED=true"
 Environment="AUTH_BAN_WINDOW_MS=600000"
-Environment="AUTH_BAN_MAX_RETRIES=5"
+Environment="AUTH_BAN_MAX_RETRIES=1"
 Environment="AUTH_BAN_DURATION_MS=3600000"
 Environment="AUTH_BAN_BLOCK_STATUS=403"
 Environment="AUTH_BAN_STATE_FILE=/opt/example-app/data/auth-ban-state.json"
+# The application should log the effective startup config it loaded:
+# maxRetries, windowMs, durationMs, blockStatus, trusted proxy mode.
 ExecStart=/usr/bin/node server.js
 Restart=always
 RestartSec=10

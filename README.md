@@ -22,12 +22,24 @@ This repository is intentionally generic:
 - Part 1: trusted-proxy-aware app-layer ban for wrong password/auth abuse
 - Future note only: Google OAuth may be added later as the next auth layer
 
+## Default Security Posture
+
+This repository defaults to immediate-ban mode for sensitive admin surfaces.
+
+Meaning:
+- one bad auth event can be enough to set a ban
+- `AUTH_BAN_MAX_RETRIES=1` is the default example posture
+- higher retry thresholds should be treated as an explicit deployment choice, not as the default assumption
+
 ## Repository Layout
 
 - `AGENTS.md`: instructions for future AI agents such as OpenAI Codex CLI
 - `docs/architecture.md`: system model and trust boundaries
+- `docs/state-model.md`: live env vs in-memory records vs persisted state
 - `docs/part-1-app-layer-ban.md`: complete design for app-layer ban
 - `docs/install-another-instance.md`: installation procedure for another instance
+- `docs/troubleshooting.md`: symptom-based troubleshooting matrix
+- `scripts/unban-app-layer-ip.sh`: standard stop-modify-start unban CLI
 - `templates/claude-vnc-terminal.service.example`: safe example unit template
 - `ops/validation-checklist.md`: rollout and verification checklist
 
@@ -40,3 +52,10 @@ Correct enforcement options:
 - host or reverse-proxy layer ban outside the container
 
 This repository starts with the app-layer approach.
+
+## Operational Notes
+
+- Persisted ban state introduces shutdown semantics. A service may write its current in-memory ban records back to disk on `SIGTERM`.
+- Because of that, manual unban is not `edit file -> restart`. The safe order is always `stop service -> modify state file -> start service`.
+- Validating only the unit file on disk is insufficient. Validate the live process through both `systemctl show` and startup logs.
+- If a downstream watcher or flow already exists, treat it as read-only unless the user explicitly asks to change it.

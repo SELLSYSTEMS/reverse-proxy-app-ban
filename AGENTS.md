@@ -11,11 +11,20 @@ Maintain a universal, reusable reverse-proxy-aware protection project.
 - Never commit sensitive instance data.
 - Never commit real host IPs, domains, passwords, cookies, or tokens.
 - Keep all examples generic and parameterized.
+- For sensitive admin surfaces, assume immediate-ban mode by default unless the deployment explicitly requires a higher threshold.
+- Define ownership boundaries before changing anything:
+  - app layer
+  - reverse proxy / host bridge
+  - systemd / service manager
+  - watcher / downstream alerting flow
 - Always distinguish:
   - `peer IP`: the immediate network source seen by the app
   - `real client IP`: the external IP derived from trusted proxy headers
 - Never assume the trusted proxy IP is fixed. It must be configurable.
 - Keep Google OAuth only as a future note for now, not as active repository scope.
+- Do not change an existing downstream watcher or flow unless the user explicitly asks for it.
+- First determine the existing deployment mode, then choose the install path. Do not force one rollout pattern onto every instance.
+- If persisted ban state exists, verify shutdown semantics before automating unban or ban maintenance.
 
 ## Documentation Standard
 
@@ -25,6 +34,8 @@ Every change should keep these concepts obvious:
 - how trusted proxy IPs are configured
 - how the real client IP is derived
 - how bans are persisted, expired, removed, and validated
+- how live systemd env differs from in-memory runtime state and persisted state file contents
+- how manual and automated unban work without reintroducing stale bans
 
 ## Current Strategic Structure
 
@@ -33,3 +44,11 @@ Every change should keep these concepts obvious:
 - Future note only: Google OAuth may become the next layer later, but it does not belong to the active repo scope yet
 
 The repository should stay step-by-step and composable so another AI agent can pick it up without hidden context, but without prematurely documenting unfinished later parts as if they already belong to the repo.
+
+## Operational Guardrails For AI Agents
+
+- Do not assume a correct unit file on disk means the live process is using that config.
+- Validate runtime config through `systemctl show`, process environment when appropriate, and startup logs.
+- Prefer deterministic tests such as `curl` or a small script over browser basic-auth prompts when checking counters and threshold behavior.
+- If `realClientIp` is correct in logs but ban logic does not trigger, stop investigating trusted proxy logic first and move to threshold, persistence, or test-method analysis.
+- If unban appears to work but bans come back on the next start, suspect shutdown-time state persistence before suspecting the state file editor.

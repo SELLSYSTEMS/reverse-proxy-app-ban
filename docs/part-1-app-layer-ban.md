@@ -37,6 +37,20 @@ Block repeated authentication abuse using the real client IP, even when the app 
 - `AUTH_BAN_BLOCK_STATUS`
 - `AUTH_BAN_STATE_FILE`
 
+Default posture for sensitive admin surfaces:
+- `AUTH_BAN_MAX_RETRIES=1`
+- one bad auth event immediately creates the ban
+- higher thresholds are optional and should be documented as an explicit deployment choice
+
+At startup, the application should log the effective values it actually loaded:
+- `maxRetries`
+- `windowMs`
+- `durationMs`
+- `blockStatus`
+- trusted proxy mode
+
+This is required for live validation after unit or drop-in changes.
+
 ## Why This Is Universal
 
 This pattern does not depend on:
@@ -62,3 +76,52 @@ Each event should preserve:
 - path
 - method
 - expiry timestamp for ban events
+
+## Event Sequence
+
+Expected sequence during a deterministic test:
+
+1. wrong auth attempt produces `BASIC_AUTH_FAILURE`
+2. in immediate-ban mode, that same request also produces `APP_BAN_SET`
+3. later requests during ban produce `APP_BAN_HIT`
+4. expiry cleanup produces `APP_BAN_EXPIRED`
+
+Watcher guidance:
+- `APP_BAN_SET` is alert-worthy
+- repeated `APP_BAN_HIT` is usually alert-worthy with dedupe
+- `APP_BAN_EXPIRED` is useful for state transitions but often lower severity
+
+## Manual Unban And Automation Unban
+
+If bans are persisted, the unban sequence must be:
+
+1. stop service
+2. modify state file
+3. start service
+
+Do not use:
+
+1. edit state file
+2. restart service
+
+Reason:
+- the old process may save stale in-memory bans back into the state file during shutdown
+
+Use the standard helper:
+- `scripts/unban-app-layer-ip.sh`
+
+## Deterministic Testing
+
+Use:
+- `curl`
+- a small script
+- repeatable CLI requests with explicit headers
+
+Avoid relying on browser basic-auth prompts for threshold testing because they often add hidden retries, caching, or other noise that makes counters look inconsistent.
+
+## Existing Watcher Integration
+
+If a watcher or downstream flow already exists:
+- treat it as read-only unless the user explicitly asks to change it
+- emit canonical app-layer events in the format the watcher already expects
+- validate delivery and field mapping instead of rewriting the watcher
