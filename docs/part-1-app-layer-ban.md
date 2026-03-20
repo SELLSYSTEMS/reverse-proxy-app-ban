@@ -39,8 +39,11 @@ Block repeated authentication abuse using the real client IP, even when the app 
 
 Default posture for sensitive admin surfaces:
 - `AUTH_BAN_MAX_RETRIES=1`
+- `AUTH_BAN_DURATION_MS=31536000000`
 - one bad auth event immediately creates the ban
+- that ban lasts for one year by default
 - higher thresholds are optional and should be documented as an explicit deployment choice
+- shorter ban durations are optional and should be documented as an explicit deployment choice
 
 At startup, the application should log the effective values it actually loaded:
 - `maxRetries`
@@ -118,6 +121,15 @@ Use:
 - repeatable CLI requests with explicit headers
 
 Avoid relying on browser basic-auth prompts for threshold testing because they often add hidden retries, caching, or other noise that makes counters look inconsistent.
+
+This matters even more in the default posture documented here:
+- `AUTH_BAN_MAX_RETRIES=1`
+- `AUTH_BAN_DURATION_MS=31536000000`
+
+In that mode:
+- the very first wrong password immediately creates a one-year ban
+- after unban, a browser may instantly send another cached or hidden retry
+- that can re-ban the same client immediately and make the operator think unban failed
 
 ## Existing Watcher Integration
 

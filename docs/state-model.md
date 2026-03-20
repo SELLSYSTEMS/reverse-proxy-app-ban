@@ -76,3 +76,9 @@ At startup, the app should log effective values for:
 - `durationMs`
 - `blockStatus`
 - trusted proxy mode
+
+For the primary admin-surface posture documented in this repository, the operator should expect to see:
+- `maxRetries=1`
+- `durationMs=31536000000`
+
+If startup logs still show values such as `maxRetries=5` or `durationMs=3600000`, the live process is not using the intended security posture.

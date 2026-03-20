@@ -59,11 +59,18 @@ Do not use `edit file -> restart`.
 Interpretation:
 - either the old ban was never really cleared
 - or a new ban was created immediately, especially in immediate-ban mode with `maxRetries=1`
+- this risk is even more operationally painful when the default one-year ban posture is active
 
 Check:
 - whether the service was fully stopped before the state file edit
 - whether the test client retried immediately after unban
 - whether immediate-ban mode is active
+- whether the ban duration is the intended long-lived value such as `31536000000`
+
+Important note:
+- with browser Basic Auth prompts, the browser may not ask again cleanly after unban
+- it may replay cached credentials or trigger hidden retries
+- with `AUTH_BAN_MAX_RETRIES=1`, that single replay is enough to create a fresh one-year ban if `AUTH_BAN_DURATION_MS=31536000000`
 
 ## Symptom: wrong IP is being banned
 

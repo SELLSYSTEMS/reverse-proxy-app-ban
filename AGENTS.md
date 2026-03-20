@@ -12,6 +12,7 @@ Maintain a universal, reusable reverse-proxy-aware protection project.
 - Never commit real host IPs, domains, passwords, cookies, or tokens.
 - Keep all examples generic and parameterized.
 - For sensitive admin surfaces, assume immediate-ban mode by default unless the deployment explicitly requires a higher threshold.
+- For the main admin-surface pattern documented in this repository, assume a one-year ban by default unless the deployment explicitly requires a shorter duration.
 - Define ownership boundaries before changing anything:
   - app layer
   - reverse proxy / host bridge
@@ -47,6 +48,10 @@ The repository should stay step-by-step and composable so another AI agent can p
 
 ## Operational Guardrails For AI Agents
 
+- Never silently keep code defaults if they contradict the documented security posture. Validate live values for both retry threshold and ban duration.
+- The strongest documented default in this repository is:
+  - `AUTH_BAN_MAX_RETRIES=1`
+  - `AUTH_BAN_DURATION_MS=31536000000`
 - Do not assume a correct unit file on disk means the live process is using that config.
 - Validate runtime config through `systemctl show`, process environment when appropriate, and startup logs.
 - Prefer deterministic tests such as `curl` or a small script over browser basic-auth prompts when checking counters and threshold behavior.

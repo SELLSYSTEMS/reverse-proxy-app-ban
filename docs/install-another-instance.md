@@ -34,22 +34,25 @@ Before editing anything, classify the target instance:
 4. Decide the threshold mode explicitly:
 - default for sensitive admin surfaces: `AUTH_BAN_MAX_RETRIES=1`
 - use higher thresholds only if the deployment really needs them
-5. Validate that the app logs effective startup config:
+5. Decide the duration mode explicitly:
+- default for sensitive admin surfaces: `AUTH_BAN_DURATION_MS=31536000000`
+- use shorter ban durations only if the deployment really needs them
+6. Validate that the app logs effective startup config:
 - `maxRetries`
 - `windowMs`
 - `durationMs`
 - `blockStatus`
 - trusted proxy mode
-6. Add watcher/alert parsing for:
+7. Add watcher/alert parsing for:
 - `BASIC_AUTH_FAILURE`
 - `APP_BAN_SET`
 - `APP_BAN_HIT`
 - `APP_BAN_EXPIRED`
-7. Disable any wrong container-local firewall enforcement that would ban the proxy IP instead of the real client IP.
-8. Reload systemd metadata if unit files changed.
-9. Start or restart the service only after validating the intended install path.
-10. Verify with a deterministic wrong-auth test.
-11. Test manual unban with the standard stop-modify-start flow.
+8. Disable any wrong container-local firewall enforcement that would ban the proxy IP instead of the real client IP.
+9. Reload systemd metadata if unit files changed.
+10. Start or restart the service only after validating the intended install path.
+11. Verify with a deterministic wrong-auth test.
+12. Test manual unban with the standard stop-modify-start flow.
 
 ## Pass Criteria
 
@@ -58,6 +61,7 @@ Before editing anything, classify the target instance:
 - the ban is enforced by the application
 - alerts are emitted for both ban creation and blocked requests
 - live startup logs show the intended threshold and timing config
+- live startup logs show the intended long-lived ban duration
 - `systemctl show` agrees with the intended live environment
 - manual unban works without stale bans returning on next start
 

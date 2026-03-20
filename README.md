@@ -29,7 +29,24 @@ This repository defaults to immediate-ban mode for sensitive admin surfaces.
 Meaning:
 - one bad auth event can be enough to set a ban
 - `AUTH_BAN_MAX_RETRIES=1` is the default example posture
+- `AUTH_BAN_DURATION_MS=31536000000` is the default example posture for a one-year ban
 - higher retry thresholds should be treated as an explicit deployment choice, not as the default assumption
+- shorter ban durations should also be treated as an explicit deployment choice, not as the default assumption
+
+## Critical Operator Warning
+
+For the primary admin-surface use case documented in this repository, the intended posture is:
+- first wrong password attempt triggers the ban immediately
+- that ban lasts for one year
+
+Translated to config:
+- `AUTH_BAN_MAX_RETRIES=1`
+- `AUTH_BAN_DURATION_MS=31536000000`
+
+Do not let a future AI agent silently fall back to:
+- multiple retries
+- one-hour bans
+- browser-based testing that immediately re-bans the client due to hidden retries or cached credentials
 
 ## Repository Layout
 
