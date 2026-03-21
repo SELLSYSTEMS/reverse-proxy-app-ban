@@ -53,6 +53,21 @@ Check:
 - whether automation is calling the local runtime interface rather than assuming a Git path
 - whether the deployment item is only `documented` rather than `installed` and `wired`
 
+## Symptom: an AI agent says the runtime state is unknown even though the host already exposes current facts
+
+Interpretation:
+- the agent is over-trusting handoff or under-using read-only verification
+
+Check:
+- `systemctl show`
+- current startup log with effective config
+- current persisted state
+- real readiness response
+
+Correct behavior:
+- use current evidence first
+- do not restart a service just to replace missing verification discipline
+
 ## Symptom: only `BASIC_AUTH_FAILURE` appears, but no `APP_BAN_SET`
 
 Interpretation:

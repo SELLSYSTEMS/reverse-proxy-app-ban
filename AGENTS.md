@@ -11,6 +11,7 @@ Maintain a universal, reusable reverse-proxy-aware protection project.
 - Never commit sensitive instance data.
 - Never commit real host IPs, domains, passwords, cookies, or tokens.
 - Keep all examples generic and parameterized.
+- Live host facts outrank handoff notes and repository context for current runtime state.
 - For sensitive admin surfaces, assume immediate-ban mode by default unless the deployment explicitly requires a higher threshold.
 - For the main admin-surface pattern documented in this repository, assume a one-year ban by default unless the deployment explicitly requires a shorter duration.
 - Define ownership boundaries before changing anything:
@@ -26,6 +27,7 @@ Maintain a universal, reusable reverse-proxy-aware protection project.
 - Do not change an existing downstream watcher or flow unless the user explicitly asks for it.
 - First determine the existing deployment mode, then choose the install path. Do not force one rollout pattern onto every instance.
 - If persisted ban state exists, verify shutdown semantics before automating unban or ban maintenance.
+- Do not restart services to discover facts that can be learned read-only.
 
 ## Documentation Standard
 
@@ -39,6 +41,7 @@ Every change should keep these concepts obvious:
 - how manual and automated unban work without reintroducing stale bans
 - which runtime interfaces must exist on the target host
 - how deployment completion is measured beyond "docs exist"
+- how stale handoff is invalidated and replaced by current live evidence
 
 ## Current Strategic Structure
 
@@ -50,6 +53,13 @@ The repository should stay step-by-step and composable so another AI agent can p
 
 ## Operational Guardrails For AI Agents
 
+- Trust sources in this order:
+  - live host facts
+  - current service logs
+  - current persisted state
+  - current live environment
+  - repository docs
+  - handoff notes
 - Never silently keep code defaults if they contradict the documented security posture. Validate live values for both retry threshold and ban duration.
 - The strongest documented default in this repository is:
   - `AUTH_BAN_MAX_RETRIES=1`
@@ -61,11 +71,19 @@ The repository should stay step-by-step and composable so another AI agent can p
   - installed
   - wired
   - live-verified
+- Before any mutation, complete a read-only verification gate:
+  - `systemctl show` or equivalent live environment check
+  - current startup log with effective config
+  - current persisted state
+  - real readiness response
+  - watcher freshness if alerting matters
 - Do not assume a correct unit file on disk means the live process is using that config.
 - Validate runtime config through `systemctl show`, process environment when appropriate, and startup logs.
 - Do not confuse `service active` with `service ready`. Require a real readiness check.
 - Do not confuse `watcher active` with `watcher healthy`. Require proof of fresh source consumption and successful outbound delivery.
+- Do not describe runtime state as "unknown" if current live evidence already proves it.
 - Prefer deterministic tests such as `curl` or a small script over browser basic-auth prompts when checking counters and threshold behavior.
 - If `realClientIp` is correct in logs but ban logic does not trigger, stop investigating trusted proxy logic first and move to threshold, persistence, or test-method analysis.
 - If unban appears to work but bans come back on the next start, suspect shutdown-time state persistence before suspecting the state file editor.
 - If a workflow includes `stop -> modify -> start`, treat interruption as part of the design. The agent is responsible for confirming the final runtime state before declaring success.
+- After any successful restart, rewrite, unban, or env change, treat older handoff as stale until re-verified.

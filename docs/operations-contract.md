@@ -2,6 +2,19 @@
 
 This document defines the environment-agnostic contracts that future operators and AI agents must satisfy when turning this repository into a working deployment.
 
+## 0. Authority Order
+
+When deciding what is true about a current deployment, use this order:
+
+1. live host facts
+2. current service logs
+3. current persisted state
+4. current live environment
+5. repository documentation
+6. handoff notes
+
+This rule exists because handoffs age quickly and repository docs describe the intended contract, not the exact current runtime.
+
 ## 1. Abstract Deployment Data Model
 
 Before installation, collect these values in abstract form:
@@ -84,6 +97,28 @@ Example interpretation:
 - `active` but no listener response means `not ready`
 - `active` but wrong startup values means `running with wrong config`
 
+## 4A. Mandatory Pre-Change Verification Gate
+
+Before any restart, rewrite, or rollout, gather read-only evidence for:
+
+- current live environment
+- current startup log with effective config
+- current persisted state
+- current readiness result
+- current watcher freshness if alerting is in scope
+
+If those checks already answer the question, mutation is not justified.
+
+## 4B. Restart Is Not A Discovery Tool
+
+An AI agent must not restart a service just to learn facts that could have been gathered read-only.
+
+A restart is justified only when:
+
+- a real config change requires it
+- the service is already broken and restoration is the task
+- the user explicitly wants the restart after the current state was established
+
 ## 5. Watcher Liveness Contract
 
 A watcher or alerting bridge is not healthy just because its process is `active`.
@@ -109,6 +144,18 @@ Safe patterns:
 Required mindset:
 - after `stop`, assume the service may remain down if the workflow aborts
 - after `start`, assume the service may still be not ready until proven otherwise
+
+## 6A. Handoff Invalidation
+
+Treat handoff as stale after any of these:
+
+- service restart
+- unit or drop-in change
+- application rewrite
+- persisted state change
+- watcher or flow change
+
+Once stale, handoff can suggest what to verify, but it cannot define what is true.
 
 ## 7. Anti-Ambiguity Rule For Future AI Agents
 

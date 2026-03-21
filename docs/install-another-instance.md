@@ -8,6 +8,18 @@
 - You have identified whether a watcher already exists and whether it is read-only for this rollout.
 - You understand the shutdown semantics of the target service if it persists ban state.
 
+## First Rule On A New Host
+
+Do not act from handoff first.
+
+Before any restart or rewrite:
+- verify the live environment
+- verify the current startup log
+- verify the current persisted state
+- verify a real readiness response
+
+If those four sources already prove the runtime state, the agent must use them instead of calling the state unknown.
+
 ## Abstract Data To Collect
 
 Collect these environment-specific facts before installation:
@@ -55,31 +67,32 @@ Before editing anything, classify the target instance:
 
 ## Steps
 
-1. Copy the app-layer ban logic into the target application.
-2. Set the trusted proxy config for that instance.
-3. Set generic auth-ban env vars.
-4. Decide the threshold mode explicitly:
+1. Complete the read-only verification gate first.
+2. Copy the app-layer ban logic into the target application only if the target does not already implement the required behavior.
+3. Set the trusted proxy config for that instance.
+4. Set generic auth-ban env vars.
+5. Decide the threshold mode explicitly:
 - default for sensitive admin surfaces: `AUTH_BAN_MAX_RETRIES=1`
 - use higher thresholds only if the deployment really needs them
-5. Decide the duration mode explicitly:
+6. Decide the duration mode explicitly:
 - default for sensitive admin surfaces: `AUTH_BAN_DURATION_MS=31536000000`
 - use shorter ban durations only if the deployment really needs them
-6. Validate that the app logs effective startup config:
+7. Validate that the app logs effective startup config:
 - `maxRetries`
 - `windowMs`
 - `durationMs`
 - `blockStatus`
 - trusted proxy mode
-7. Add watcher/alert parsing for:
+8. Add watcher/alert parsing for:
 - `BASIC_AUTH_FAILURE`
 - `APP_BAN_SET`
 - `APP_BAN_HIT`
 - `APP_BAN_EXPIRED`
-8. Disable any wrong container-local firewall enforcement that would ban the proxy IP instead of the real client IP.
-9. Reload systemd metadata if unit files changed.
-10. Start or restart the service only after validating the intended install path.
-11. Verify with a deterministic wrong-auth test.
-12. Test manual unban with the standard stop-modify-start flow.
+9. Disable any wrong container-local firewall enforcement that would ban the proxy IP instead of the real client IP.
+10. Reload systemd metadata only if unit files changed.
+11. Start or restart the service only when there is a concrete change to apply or restoration is required.
+12. Verify with a deterministic wrong-auth test.
+13. Test manual unban with the standard stop-modify-start flow.
 
 ## Deployment Completion Matrix
 
