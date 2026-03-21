@@ -68,6 +68,15 @@ Correct behavior:
 - use current evidence first
 - do not restart a service just to replace missing verification discipline
 
+## Symptom: an AI agent finishes read-only verification and then still performs bad-auth or unban steps without being asked
+
+Interpretation:
+- the agent skipped the required operator checkpoint between verification and live adversarial testing
+
+Correct behavior:
+- after read-only verification, stop and report readiness
+- wait for explicit operator approval before consuming the live test window with bad-auth, ban-hit, unban, or restart exercises
+
 ## Symptom: only `BASIC_AUTH_FAILURE` appears, but no `APP_BAN_SET`
 
 Interpretation:

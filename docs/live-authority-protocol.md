@@ -31,6 +31,21 @@ Before any restart, rewrite, or rollout, the AI agent must gather read-only evid
 
 If those checks already prove the answer, the agent must not describe runtime state as unknown.
 
+## Operator Checkpoint After Read-Only Verification
+
+On a live sensitive admin surface, completing the read-only gate does not automatically authorize active testing.
+
+After read-only verification, the agent must stop and establish which mode applies:
+
+- operator only wants confirmation that the system is ready
+- operator explicitly wants a live adversarial exercise:
+  - bad-auth
+  - ban-hit
+  - unban
+  - restart validation
+
+Without that explicit checkpoint, the agent must not consume the live test window on its own.
+
 ## Restart Prohibition Rule
 
 Do not restart a service just to discover facts that can be learned read-only.

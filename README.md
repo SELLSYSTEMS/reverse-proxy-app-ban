@@ -48,6 +48,8 @@ Do not let a future AI agent silently fall back to:
 - one-hour bans
 - browser-based testing that immediately re-bans the client due to hidden retries or cached credentials
 
+On a live sensitive admin surface, a future AI agent must also not silently proceed from read-only verification into intentional bad-auth, ban-hit, unban, or restart exercises without an explicit operator checkpoint.
+
 ## Repository Layout
 
 - `AGENTS.md`: instructions for future AI agents such as OpenAI Codex CLI

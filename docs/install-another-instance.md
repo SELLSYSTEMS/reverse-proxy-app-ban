@@ -20,6 +20,11 @@ Before any restart or rewrite:
 
 If those four sources already prove the runtime state, the agent must use them instead of calling the state unknown.
 
+If the operator wants to test personally, the correct next output is:
+- system is ready for your manual test
+
+It is not correct to continue into a live bad-auth cycle unless the operator explicitly asks for that cycle.
+
 ## Abstract Data To Collect
 
 Collect these environment-specific facts before installation:
@@ -91,8 +96,11 @@ Before editing anything, classify the target instance:
 9. Disable any wrong container-local firewall enforcement that would ban the proxy IP instead of the real client IP.
 10. Reload systemd metadata only if unit files changed.
 11. Start or restart the service only when there is a concrete change to apply or restoration is required.
-12. Verify with a deterministic wrong-auth test.
-13. Test manual unban with the standard stop-modify-start flow.
+12. Stop at an operator checkpoint.
+13. Only if the operator explicitly requests a live adversarial exercise:
+- run a deterministic wrong-auth test
+- validate ban-hit behavior
+- validate unban
 
 ## Deployment Completion Matrix
 

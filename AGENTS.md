@@ -28,6 +28,7 @@ Maintain a universal, reusable reverse-proxy-aware protection project.
 - First determine the existing deployment mode, then choose the install path. Do not force one rollout pattern onto every instance.
 - If persisted ban state exists, verify shutdown semantics before automating unban or ban maintenance.
 - Do not restart services to discover facts that can be learned read-only.
+- On a live sensitive admin surface, do not intentionally trigger bad-auth, ban-hit, unban, or similar adversarial validation steps unless the operator explicitly asked for that live exercise.
 
 ## Documentation Standard
 
@@ -77,6 +78,9 @@ The repository should stay step-by-step and composable so another AI agent can p
   - current persisted state
   - real readiness response
   - watcher freshness if alerting matters
+- After the read-only gate, stop and establish whether the operator wants:
+  - read-only confirmation only
+  - or a live adversarial test cycle
 - Do not assume a correct unit file on disk means the live process is using that config.
 - Validate runtime config through `systemctl show`, process environment when appropriate, and startup logs.
 - Do not confuse `service active` with `service ready`. Require a real readiness check.
@@ -87,3 +91,4 @@ The repository should stay step-by-step and composable so another AI agent can p
 - If unban appears to work but bans come back on the next start, suspect shutdown-time state persistence before suspecting the state file editor.
 - If a workflow includes `stop -> modify -> start`, treat interruption as part of the design. The agent is responsible for confirming the final runtime state before declaring success.
 - After any successful restart, rewrite, unban, or env change, treat older handoff as stale until re-verified.
+- If the operator says they want to test personally, the agent must stop at "ready for your test" and not consume the test window by running its own bad-auth cycle first.
