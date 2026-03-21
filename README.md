@@ -52,6 +52,7 @@ Do not let a future AI agent silently fall back to:
 
 - `AGENTS.md`: instructions for future AI agents such as OpenAI Codex CLI
 - `docs/architecture.md`: system model and trust boundaries
+- `docs/operations-contract.md`: environment-agnostic deployment and runtime contracts
 - `docs/state-model.md`: live env vs in-memory records vs persisted state
 - `docs/part-1-app-layer-ban.md`: complete design for app-layer ban
 - `docs/install-another-instance.md`: installation procedure for another instance
@@ -76,3 +77,5 @@ This repository starts with the app-layer approach.
 - Because of that, manual unban is not `edit file -> restart`. The safe order is always `stop service -> modify state file -> start service`.
 - Validating only the unit file on disk is insufficient. Validate the live process through both `systemctl show` and startup logs.
 - If a downstream watcher or flow already exists, treat it as read-only unless the user explicitly asks to change it.
+- A reference script inside this repository is not the same thing as a runtime automation command on a target host. The local automation entrypoint must be installed, named, and verified separately.
+- `service active` is not the same thing as `service ready`. Readiness must be proven through startup logs and a real response check.

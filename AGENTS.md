@@ -37,6 +37,8 @@ Every change should keep these concepts obvious:
 - how bans are persisted, expired, removed, and validated
 - how live systemd env differs from in-memory runtime state and persisted state file contents
 - how manual and automated unban work without reintroducing stale bans
+- which runtime interfaces must exist on the target host
+- how deployment completion is measured beyond "docs exist"
 
 ## Current Strategic Structure
 
@@ -52,8 +54,18 @@ The repository should stay step-by-step and composable so another AI agent can p
 - The strongest documented default in this repository is:
   - `AUTH_BAN_MAX_RETRIES=1`
   - `AUTH_BAN_DURATION_MS=31536000000`
+- Distinguish `reference implementation in Git` from `runtime command installed on host`.
+- Before calling a local automation command, verify that the target environment actually has that runtime interface installed and callable.
+- Track deployment status using four separate states:
+  - documented
+  - installed
+  - wired
+  - live-verified
 - Do not assume a correct unit file on disk means the live process is using that config.
 - Validate runtime config through `systemctl show`, process environment when appropriate, and startup logs.
+- Do not confuse `service active` with `service ready`. Require a real readiness check.
+- Do not confuse `watcher active` with `watcher healthy`. Require proof of fresh source consumption and successful outbound delivery.
 - Prefer deterministic tests such as `curl` or a small script over browser basic-auth prompts when checking counters and threshold behavior.
 - If `realClientIp` is correct in logs but ban logic does not trigger, stop investigating trusted proxy logic first and move to threshold, persistence, or test-method analysis.
 - If unban appears to work but bans come back on the next start, suspect shutdown-time state persistence before suspecting the state file editor.
+- If a workflow includes `stop -> modify -> start`, treat interruption as part of the design. The agent is responsible for confirming the final runtime state before declaring success.

@@ -8,6 +8,33 @@
 - You have identified whether a watcher already exists and whether it is read-only for this rollout.
 - You understand the shutdown semantics of the target service if it persists ban state.
 
+## Abstract Data To Collect
+
+Collect these environment-specific facts before installation:
+
+- logical service name
+- live config source:
+  unit file, drop-in, env file, container env, or equivalent
+- trusted proxy model
+- state backend type and location
+- local runtime automation command names
+- watcher mode:
+  absent, existing-read-only, or editable-by-request
+- readiness check method
+
+The exact paths can vary per environment. The important part is that each role exists and is mapped explicitly.
+
+## Runtime Interface Contract
+
+Before wiring automation or flows, verify that the target environment has working local entrypoints for:
+
+- unban one IP
+- inspect service status
+- restart or start the service
+- check readiness
+
+Do not assume that a script documented in Git already exists on the target host under a callable local name.
+
 ## Choose Install Path First
 
 Before editing anything, classify the target instance:
@@ -54,6 +81,23 @@ Before editing anything, classify the target instance:
 11. Verify with a deterministic wrong-auth test.
 12. Test manual unban with the standard stop-modify-start flow.
 
+## Deployment Completion Matrix
+
+Do not stop at "documentation exists".
+
+Track each installation item as:
+
+- documented
+- installed
+- wired into automation or flows
+- live-verified
+
+Example:
+- a repository script may be `documented`
+- a copied local wrapper may be `installed`
+- a Node-RED flow or operator command may make it `wired`
+- only a real successful unban and readiness proof makes it `live-verified`
+
 ## Pass Criteria
 
 - logs show the real external IP
@@ -63,6 +107,8 @@ Before editing anything, classify the target instance:
 - live startup logs show the intended threshold and timing config
 - live startup logs show the intended long-lived ban duration
 - `systemctl show` agrees with the intended live environment
+- readiness is proven by a real service response, not only by `active`
+- watcher freshness is proven by fresh own logs or successful outbound delivery
 - manual unban works without stale bans returning on next start
 
 ## Fail Cases
@@ -73,6 +119,9 @@ Before editing anything, classify the target instance:
 - secrets or instance-specific values appear in repo content
 - the state file is edited while the old process is still running
 - the unit file looks correct on disk but startup logs still show old values
+- the runtime wrapper expected by automation does not actually exist on the host
+- the service is `active` but still not ready
+- the watcher process is `active` but stale
 
 ## Webhook Transport Variants
 

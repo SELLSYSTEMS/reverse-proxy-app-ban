@@ -31,6 +31,28 @@ Check:
 - whether a drop-in or override still applies
 - whether the startup log prints the old effective config
 
+## Symptom: service manager says `active`, but users still see `502`, connection errors, or no usable response
+
+Interpretation:
+- the process may be running, but the service is not yet ready
+- or the service started and then failed before a real response path was verified
+
+Check:
+- a real readiness response, not only `systemctl status`
+- startup logs
+- listener readiness
+- reverse proxy upstream health
+
+## Symptom: automation or flow calls an unban command, but the command does not exist locally
+
+Interpretation:
+- the repository reference implementation was documented, but the runtime interface was never installed or wired
+
+Check:
+- whether the target host has a local callable wrapper
+- whether automation is calling the local runtime interface rather than assuming a Git path
+- whether the deployment item is only `documented` rather than `installed` and `wired`
+
 ## Symptom: only `BASIC_AUTH_FAILURE` appears, but no `APP_BAN_SET`
 
 Interpretation:
@@ -87,9 +109,12 @@ Check:
 
 Interpretation:
 - enforcement may be working, but downstream integration is missing or mismatched
+- or the watcher process is stale even though it still appears active
 
 Check:
 - canonical event names and fields
 - webhook delivery path
 - TLS verification mode for local HTTPS
 - downstream dedupe or filtering rules
+- freshness of watcher-owned logs
+- proof that new source events are still being consumed
