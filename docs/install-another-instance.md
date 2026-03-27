@@ -88,16 +88,28 @@ Before editing anything, classify the target instance:
 - `durationMs`
 - `blockStatus`
 - trusted proxy mode
-8. Add watcher/alert parsing for:
+8. Validate the non-authenticated path explicitly:
+- a request with no `Authorization: Basic ...` header may return `401`
+- but it must not emit `BASIC_AUTH_FAILURE`
+- and it must not increment counters or create a ban
+9. Add watcher parsing for canonical events:
 - `BASIC_AUTH_FAILURE`
 - `APP_BAN_SET`
 - `APP_BAN_HIT`
 - `APP_BAN_EXPIRED`
-9. Disable any wrong container-local firewall enforcement that would ban the proxy IP instead of the real client IP.
-10. Reload systemd metadata only if unit files changed.
-11. Start or restart the service only when there is a concrete change to apply or restoration is required.
-12. Stop at an operator checkpoint.
-13. Only if the operator explicitly requests a live adversarial exercise:
+Default outbound operator alerting should usually start with:
+- `APP_BAN_SET`
+
+Optional and often noisy operator alerts:
+- `BASIC_AUTH_FAILURE`
+- `APP_BAN_HIT`
+- `APP_BAN_EXPIRED`
+
+10. Disable any wrong container-local firewall enforcement that would ban the proxy IP instead of the real client IP.
+11. Reload systemd metadata only if unit files changed.
+12. Start or restart the service only when there is a concrete change to apply or restoration is required.
+13. Stop at an operator checkpoint.
+14. Only if the operator explicitly requests a live adversarial exercise:
 - run a deterministic wrong-auth test
 - validate ban-hit behavior
 - validate unban
@@ -124,7 +136,9 @@ Example:
 - logs show the real external IP
 - logs also preserve peer IP for forensics
 - the ban is enforced by the application
-- alerts are emitted for both ban creation and blocked requests
+- a no-auth request returns `401` without creating a ban
+- operator-facing alerts are emitted for ban creation by default
+- blocked-request alerts are enabled only if the operator explicitly wants that noise
 - live startup logs show the intended threshold and timing config
 - live startup logs show the intended long-lived ban duration
 - `systemctl show` agrees with the intended live environment

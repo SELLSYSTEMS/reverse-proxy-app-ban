@@ -47,6 +47,7 @@ Do not let a future AI agent silently fall back to:
 - multiple retries
 - one-hour bans
 - browser-based testing that immediately re-bans the client due to hidden retries or cached credentials
+- ban logic that treats missing credentials as if they were explicit wrong credentials
 
 On a live sensitive admin surface, a future AI agent must also not silently proceed from read-only verification into intentional bad-auth, ban-hit, unban, or restart exercises without an explicit operator checkpoint.
 
@@ -77,6 +78,7 @@ This repository starts with the app-layer approach.
 ## Operational Notes
 
 - Live host facts outrank every handoff note. If `systemctl show`, current startup logs, persisted state, and a real response check already prove the runtime state, an AI agent must not describe that state as "unknown".
+- A request with no `Authorization: Basic ...` header must return `401`, but it must not create `BASIC_AUTH_FAILURE`, increment failure counters, or create a ban.
 - Persisted ban state introduces shutdown semantics. A service may write its current in-memory ban records back to disk on `SIGTERM`.
 - Because of that, manual unban is not `edit file -> restart`. The safe order is always `stop service -> modify state file -> start service`.
 - Validating only the unit file on disk is insufficient. Validate the live process through both `systemctl show` and startup logs.
@@ -84,3 +86,4 @@ This repository starts with the app-layer approach.
 - A reference script inside this repository is not the same thing as a runtime automation command on a target host. The local automation entrypoint must be installed, named, and verified separately.
 - `service active` is not the same thing as `service ready`. Readiness must be proven through startup logs and a real response check.
 - Restart is not a discovery tool. An AI agent must complete a read-only verification gate before any restart unless the service is already confirmed broken and restoration is the explicit task.
+- Recommended external alerting default: send ban alerts only. Treat probes, hits, unbans, and health warnings as optional/noisy unless the operator explicitly wants them.

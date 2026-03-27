@@ -29,6 +29,7 @@ Maintain a universal, reusable reverse-proxy-aware protection project.
 - If persisted ban state exists, verify shutdown semantics before automating unban or ban maintenance.
 - Do not restart services to discover facts that can be learned read-only.
 - On a live sensitive admin surface, do not intentionally trigger bad-auth, ban-hit, unban, or similar adversarial validation steps unless the operator explicitly asked for that live exercise.
+- Never treat a missing Basic Auth header as a wrong credential attempt. Missing credentials may justify `401`, but not `BASIC_AUTH_FAILURE` or a ban.
 
 ## Documentation Standard
 
@@ -86,9 +87,14 @@ The repository should stay step-by-step and composable so another AI agent can p
 - Do not confuse `service active` with `service ready`. Require a real readiness check.
 - Do not confuse `watcher active` with `watcher healthy`. Require proof of fresh source consumption and successful outbound delivery.
 - Do not describe runtime state as "unknown" if current live evidence already proves it.
+- Validate the difference between:
+  - missing credentials
+  - explicit wrong credentials
+  before trusting any auth-ban implementation
 - Prefer deterministic tests such as `curl` or a small script over browser basic-auth prompts when checking counters and threshold behavior.
 - If `realClientIp` is correct in logs but ban logic does not trigger, stop investigating trusted proxy logic first and move to threshold, persistence, or test-method analysis.
 - If unban appears to work but bans come back on the next start, suspect shutdown-time state persistence before suspecting the state file editor.
 - If a workflow includes `stop -> modify -> start`, treat interruption as part of the design. The agent is responsible for confirming the final runtime state before declaring success.
 - After any successful restart, rewrite, unban, or env change, treat older handoff as stale until re-verified.
 - If the operator says they want to test personally, the agent must stop at "ready for your test" and not consume the test window by running its own bad-auth cycle first.
+- Default external alerting should be ban-focused unless the operator explicitly wants more noise.

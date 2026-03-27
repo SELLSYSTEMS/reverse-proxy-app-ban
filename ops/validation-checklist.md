@@ -46,23 +46,24 @@
 - if not `31536000000`, verify that the shorter duration was an intentional deployment choice
 10. app starts with app-layer ban enabled
 11. service readiness is proven by a real response, not just `active`
-12. valid auth still works
-13. if the operator wants to test personally, stop here and hand off a ready state
-14. only if the operator explicitly requests a live adversarial exercise:
-- deterministic wrong-auth test triggers `BASIC_AUTH_FAILURE`
-- in immediate-ban mode, the same bad auth event also triggers `APP_BAN_SET`
+12. a request with no `Authorization: Basic ...` header returns `401` but does not create `BASIC_AUTH_FAILURE`, increment counters, or create `APP_BAN_SET`
+13. valid auth still works
+14. if the operator wants to test personally, stop here and hand off a ready state
+15. only if the operator explicitly requests a live adversarial exercise:
+- deterministic wrong-auth test with an explicit `Authorization: Basic ...` header triggers `BASIC_AUTH_FAILURE`
+- in immediate-ban mode, that same explicit bad auth event also triggers `APP_BAN_SET`
 - next requests trigger `APP_BAN_HIT`
 - manual unban is validated with stop -> modify -> start
-15. state file persists bans
-16. state file permissions stay root-only
-17. watcher emits external notifications
-18. watcher health is proven by fresh own logs or successful outbound delivery
-19. restart was performed only because a real change required it or restoration was needed
-20. manual unban is validated with:
+16. state file persists bans
+17. state file permissions stay root-only
+18. watcher emits external notifications for `APP_BAN_SET` by default, with noisier event types enabled only if the operator explicitly wants them
+19. watcher health is proven by fresh own logs or successful outbound delivery
+20. restart was performed only because a real change required it or restoration was needed
+21. manual unban is validated with:
 - stop service
 - modify state file or use `scripts/unban-app-layer-ip.sh`
 - start service
-21. confirm stale bans do not return after unban
+22. confirm stale bans do not return after unban
 
 ## Future Note
 

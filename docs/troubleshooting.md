@@ -88,6 +88,22 @@ Check:
 - confirm the number of requests actually sent
 - confirm the current threshold
 
+## Symptom: the client gets banned even though no visible login prompt or wrong password entry happened
+
+Interpretation:
+- the app is probably treating missing credentials as explicit auth failures
+- background browser fetches, static assets, or API calls are being counted as wrong-password attempts
+
+Check:
+- whether `BASIC_AUTH_FAILURE` shows `user=missing` or another marker that means no actual username/password pair was supplied
+- whether the failing paths are background or asset routes such as `/`, `/favicon.ico`, `/novnc/...`, `/api/providers`, or `/api/system-stats`
+- whether the code increments counters when the `Authorization` header is missing entirely
+
+Correct behavior:
+- missing credentials may justify `401`
+- but only an explicit `Authorization: Basic ...` request with wrong credentials may emit `BASIC_AUTH_FAILURE`
+- and only those explicit wrong-credential events may advance the ban threshold
+
 ## Symptom: after unban, the service starts and says it restored bans from the state file
 
 Interpretation:
@@ -142,3 +158,8 @@ Check:
 - downstream dedupe or filtering rules
 - freshness of watcher-owned logs
 - proof that new source events are still being consumed
+
+Operator guidance:
+- default external alerting is usually best kept ban-focused
+- `APP_BAN_SET` should normally notify the operator
+- `APP_BAN_HIT`, `BASIC_AUTH_FAILURE`, expiry, and health-style signals are often better kept as logs or optional lower-noise channels unless the operator explicitly wants them

@@ -11,6 +11,8 @@ Block repeated authentication abuse using the real client IP, even when the app 
 - or direct peer IP when no trusted proxy applies
 
 2. On auth failure:
+- only treat an explicit `Authorization: Basic ...` attempt with wrong credentials as an auth failure
+- do not treat a missing auth header as a wrong credential attempt
 - log a normalized security event
 - increment the failure bucket for that real client IP
 
@@ -80,6 +82,11 @@ Each event should preserve:
 - method
 - expiry timestamp for ban events
 
+Non-event rule:
+- a request with no `Authorization: Basic ...` header may return `401`
+- but it must not emit `BASIC_AUTH_FAILURE`
+- and it must not increment failure counters or create a ban
+
 ## Event Sequence
 
 Expected sequence during a deterministic test:
@@ -91,8 +98,9 @@ Expected sequence during a deterministic test:
 
 Watcher guidance:
 - `APP_BAN_SET` is alert-worthy
-- repeated `APP_BAN_HIT` is usually alert-worthy with dedupe
+- repeated `APP_BAN_HIT` is optional and often too noisy for default operator alerting
 - `APP_BAN_EXPIRED` is useful for state transitions but often lower severity
+- default external alerting should usually notify on `APP_BAN_SET` only unless the operator explicitly wants more noise
 
 ## Manual Unban And Automation Unban
 
@@ -120,6 +128,12 @@ Use:
 - a small script
 - repeatable CLI requests with explicit headers
 
+Always include one safe no-auth check in the validation flow:
+- send a request with no `Authorization: Basic ...` header
+- confirm it returns `401`
+- confirm it does not emit `BASIC_AUTH_FAILURE`
+- confirm it does not increment counters or create `APP_BAN_SET`
+
 Avoid relying on browser basic-auth prompts for threshold testing because they often add hidden retries, caching, or other noise that makes counters look inconsistent.
 
 This matters even more in the default posture documented here:
@@ -137,3 +151,6 @@ If a watcher or downstream flow already exists:
 - treat it as read-only unless the user explicitly asks to change it
 - emit canonical app-layer events in the format the watcher already expects
 - validate delivery and field mapping instead of rewriting the watcher
+- if the watcher supports operator-facing filtering, default to ban-focused alerts:
+  - notify on `APP_BAN_SET`
+  - keep `BASIC_AUTH_FAILURE`, `APP_BAN_HIT`, and `APP_BAN_EXPIRED` available for logs, forensic pipelines, or optional lower-noise paths
