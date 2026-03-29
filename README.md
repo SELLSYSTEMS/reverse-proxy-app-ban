@@ -16,6 +16,15 @@ This repository is intentionally generic:
 - no passwords
 - no private tokens
 
+## AI Agent Start Here
+
+If you are an AI agent working from this repository, read in this order before touching a live system:
+- `docs/ai-agent-first-read.md`
+- `docs/live-authority-protocol.md`
+- `ops/validation-checklist.md`
+
+Do not skip directly to rollout or restart actions from partial context.
+
 ## Project Scope Right Now
 
 - Active scope: Part 1 only
@@ -54,6 +63,7 @@ On a live sensitive admin surface, a future AI agent must also not silently proc
 ## Repository Layout
 
 - `AGENTS.md`: instructions for future AI agents such as OpenAI Codex CLI
+- `docs/ai-agent-first-read.md`: short non-negotiable rules and required read order
 - `docs/architecture.md`: system model and trust boundaries
 - `docs/live-authority-protocol.md`: mandatory source-of-truth order and pre-change verification gate
 - `docs/operations-contract.md`: environment-agnostic deployment and runtime contracts

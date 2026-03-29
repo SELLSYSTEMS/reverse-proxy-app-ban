@@ -6,6 +6,16 @@ This repository is written for future AI agents, including OpenAI Codex CLI.
 
 Maintain a universal, reusable reverse-proxy-aware protection project.
 
+## Mandatory Read Order
+
+Before touching a live deployment, read in this order:
+1. `README.md`
+2. `docs/ai-agent-first-read.md`
+3. `docs/live-authority-protocol.md`
+4. `ops/validation-checklist.md`
+
+Only after that should you rely on the deeper design and install documents.
+
 ## Hard Rules
 
 - Never commit sensitive instance data.
